@@ -1,0 +1,46 @@
+{
+  "name": "KC Framework",
+  "id": "kc-framework",
+  "version": "0.1.0",
+  "displayName": "KC - Klaus Claude Personal Tools",
+  "description": "Personal agent framework and custom tools developed by Klaus. Contains documentation generators, parallel orchestration, debugging tools, and more.",
+  "author": "Klaus",
+  "license": "MIT",
+  "location": "~/klauspython/kc",
+  "namespace": "kc",
+  "commands": [
+    {
+      "name": "kc",
+      "path": "commands/kc"
+    }
+  ],
+  "agents": [
+    {
+      "name": "parallel-orchestrator",
+      "path": "agents/parallel-orchestrator.md"
+    },
+    {
+      "name": "parallel-debugger",
+      "path": "agents/parallel-debugger.md"
+    },
+    {
+      "name": "task-velocity-estimator",
+      "path": "agents/task-velocity-estimator.md"
+    },
+    {
+      "name": "nivametoden",
+      "path": "agents/nivametoden.md"
+    },
+    {
+      "name": "parallel-tester",
+      "path": "agents/parallel-tester.md"
+    }
+  ],
+  "skills": [
+    {
+      "name": "kc-docs",
+      "path": "skills/kc-docs/SKILL.md",
+      "description": "Python project documentation generator with UML diagrams"
+    }
+  ]
+}

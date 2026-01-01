@@ -1,0 +1,62 @@
+# KC Framework .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Session and temporary files
+.session-checkpoint-*.md
+*.tmp
+*.log
+*.bak
+*.backup
+
+# Git repositories inside agents
+# (parallel-orchestrator has its own .git)
+agents/*/.git/
+
+# Claude Code specific
+.claude-config.json
+
+# Compiled files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+
+# OS files
+Thumbs.db
+.DS_Store

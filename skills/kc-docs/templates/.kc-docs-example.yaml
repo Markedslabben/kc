@@ -1,0 +1,72 @@
+# KC Documentation Configuration
+# Save as .kc-docs.yaml in your project root to customize behavior
+
+analysis:
+  # Minimum number of classes to generate class diagram
+  min_classes_for_diagram: 5
+
+  # Include private methods and classes
+  include_private: false
+
+  # Maximum folder depth to scan
+  max_depth: 5
+
+  # File patterns to include (relative to project root)
+  include_patterns:
+    - "src/**/*.py"
+    - "lib/**/*.py"
+
+  # File patterns to exclude
+  exclude_patterns:
+    - "**/test_*.py"
+    - "**/tests.py"
+    - "**/conftest.py"
+    - "**/__pycache__/**"
+
+output:
+  # Output file formats: [svg, png, html, pdf]
+  formats: [svg, html]
+
+  # Color theme: light or dark
+  theme: light
+
+  # Generate markdown documentation
+  documentation: true
+
+  # Output directory
+  output_directory: "docs"
+
+diagrams:
+  # Generate architecture diagram from module structure
+  architecture: true
+
+  # Generate UML class diagram
+  class_diagram: true
+
+  # Generate module dependency graph
+  dependency_graph: true
+
+  # Generate sequence diagrams (requires more analysis)
+  sequences: false
+
+  # Include all classes (default limits to top 20)
+  include_all_classes: false
+
+documentation:
+  # Generate API reference documentation
+  api_reference: true
+
+  # Generate architecture overview
+  architecture_guide: true
+
+  # Generate module guide
+  module_guide: true
+
+  # Generate analysis report with metrics
+  analysis_report: true
+
+# Example: Process only src/ directory
+# analysis:
+#   max_depth: 2
+#   include_patterns:
+#     - "src/**/*.py"
