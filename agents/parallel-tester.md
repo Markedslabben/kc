@@ -1,5 +1,6 @@
 ---
 name: parallel-tester
+color: gold
 description: Use this agent when you need to run comprehensive tests in parallel across multiple independent test suites, configurations, or scenarios. Examples:
 
 <example>

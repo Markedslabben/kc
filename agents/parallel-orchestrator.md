@@ -1,5 +1,6 @@
 ---
 name: parallel-orchestrator
+color: yellow
 description: Use this agent when you need to orchestrate parallel operations, distribute tasks across multiple workers, or optimize execution using git worktrees. Examples:
 
 <example>

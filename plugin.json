@@ -34,6 +34,10 @@
     {
       "name": "parallel-tester",
       "path": "agents/parallel-tester.md"
+    },
+    {
+      "name": "double-loop-learning",
+      "path": "agents/double-loop-learning.md"
     }
   ],
   "skills": [
@@ -41,6 +45,11 @@
       "name": "kc-docs",
       "path": "skills/kc-docs/SKILL.md",
       "description": "Python project documentation generator with UML diagrams"
+    },
+    {
+      "name": "learn",
+      "path": "skills/learn.md",
+      "description": "Review session insights and propose systemic improvements to prevent recurring mistakes"
     }
   ]
 }

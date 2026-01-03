@@ -1,5 +1,6 @@
 ---
 name: parallel-debugger
+color: orange
 description: Use this agent when debugging complex issues by testing multiple hypotheses in parallel using git worktrees. Examples:
 
 <example>

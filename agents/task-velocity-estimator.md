@@ -1,5 +1,6 @@
 ---
 name: task-velocity-estimator
+color: goldenrod
 description: Use this agent when you need data-driven time estimates for comprehensive tasks or want to track team velocity and build historical estimation models. Examples:
 
 <example>

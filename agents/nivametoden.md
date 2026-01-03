@@ -1,5 +1,6 @@
 ---
 name: nivametoden
+color: amber
 description: Use this agent when you need to transform complex documents into clear, hierarchical reports using the Pyramid Principle and Norwegian "Nivåmetoden" framework. Examples:
 
 <example>

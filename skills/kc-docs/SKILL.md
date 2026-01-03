@@ -211,6 +211,96 @@ python ~/.claude/skills/kc-docs/scripts/serve_docs.py docs/
 
 ---
 
+## Architecture Bloat Detection
+
+When generating documentation, kc-docs also checks for **architecture anti-patterns** that inflate class counts and obscure the real domain structure.
+
+### Pydantic Model Bloat
+
+**Problem**: Using Pydantic `BaseModel` for every nested data structure instead of only at API boundaries.
+
+```python
+# ❌ BLOAT: 5 classes for simple nested data
+class Coordinate(BaseModel):
+    lat: float
+    lon: float
+
+class Options(BaseModel):
+    radius: float
+
+class Request(BaseModel):
+    coord: Coordinate
+    options: Options
+
+# ✅ LEAN: 1 class for API boundary, rest is inline
+class Request(BaseModel):
+    lat: float
+    lon: float
+    radius: float = 30.0
+```
+
+**Detection**: kc-docs flags when:
+- Pydantic models > 30% of total classes
+- Pydantic models with < 5 fields (could be `NamedTuple`)
+- Nested Pydantic models used only internally
+
+**Recommendation**:
+| Location | Use |
+|----------|-----|
+| API Request/Response | ✅ Pydantic |
+| Internal data passing | `dataclass`, `NamedTuple`, or `dict` |
+| Simple value groups | `tuple` or `NamedTuple` |
+
+### Thin Wrapper Classes
+
+**Problem**: Classes with < 50 LOC that just delegate to other classes or stdlib.
+
+```python
+# ❌ BLOAT: Reinventing stdlib
+class AdvancedCache:
+    def __init__(self):
+        self._cache = {}
+    def get(self, key):
+        return self._cache.get(key)
+    def set(self, key, value):
+        self._cache[key] = value
+
+# ✅ LEAN: Use stdlib
+from functools import lru_cache
+```
+
+**Detection**: kc-docs flags classes with:
+- < 50 lines of code
+- < 3 methods
+- Names ending in `Manager`, `Handler`, `Wrapper`, `Helper`
+
+### Layer Tax
+
+**Problem**: handler → service → repository → model chains for simple operations.
+
+**Detection**: kc-docs measures import depth and flags when > 4 layers.
+
+### Metrics in Analysis Report
+
+When you run `/kc-docs analyze`, the report now includes:
+
+```
+Architecture Health:
+├── Pydantic model ratio: 41/169 (24%) ⚠️ HIGH
+├── Thin wrappers detected: 8 classes
+├── Average LOC per class: 85 ⚠️ LOW (target: 100-300)
+├── Max import depth: 5 ⚠️ DEEP
+└── Recommendation: Consolidate Pydantic models, merge thin wrappers
+```
+
+### Reference: Lean Architecture
+
+See `~/.claude/snippets/lean-architecture-guard.md` for full guidelines.
+
+**Golden rule**: A class should map to a **domain concept** (Turbine, Invoice, RoofPolygon), not an **architecture concept** (Handler, Service, Manager).
+
+---
+
 ## Troubleshooting
 
 **"No classes found"**
