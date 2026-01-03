@@ -38,6 +38,31 @@
     {
       "name": "double-loop-learning",
       "path": "agents/double-loop-learning.md"
+    },
+    {
+      "name": "application-architect",
+      "path": "agents/kc-application-architect.md",
+      "description": "Creates detailed implementation specifications (first drafts for review)"
+    },
+    {
+      "name": "dhh-code-reviewer",
+      "path": "agents/kc-dhh-code-reviewer.md",
+      "description": "Elite code reviewer enforcing DHH standards for Python/JS"
+    },
+    {
+      "name": "python-developer",
+      "path": "agents/kc-python-developer.md",
+      "description": "Python implementation specialist with GCP integration"
+    },
+    {
+      "name": "frontend-developer",
+      "path": "agents/kc-frontend-developer.md",
+      "description": "Frontend implementation specialist (JS/HTML/CSS)"
+    },
+    {
+      "name": "parkoptimizer-reviewer",
+      "path": "agents/kc-parkoptimizer-reviewer.md",
+      "description": "Lean architecture enforcer based on ParkOptimizer standard"
     }
   ],
   "skills": [
@@ -50,6 +75,11 @@
       "name": "learn",
       "path": "skills/learn.md",
       "description": "Review session insights and propose systemic improvements to prevent recurring mistakes"
+    },
+    {
+      "name": "architecture",
+      "path": "skills/kc-architecture.md",
+      "description": "Develop lean specifications through iterative architect-reviewer workflow"
     }
   ]
 }
