@@ -293,6 +293,90 @@ Architecture Health:
 └── Recommendation: Consolidate Pydantic models, merge thin wrappers
 ```
 
+---
+
+## Cohesion Analysis (NEW)
+
+kc-docs now integrates the **cohesion** library and **LCOM4 metric** to detect classes that should be merged or split.
+
+### What is Cohesion?
+
+Cohesion measures how related the methods in a class are. High cohesion (80%+) means methods work together on shared data. Low cohesion (<50%) suggests the class does too many unrelated things.
+
+### LCOM4 Metric
+
+**Lack of Cohesion of Methods (LCOM4)** counts connected components in a graph where:
+- Nodes = methods
+- Edges = methods that share instance variables
+
+| LCOM4 Value | Meaning |
+|-------------|---------|
+| 1 | Perfect cohesion - all methods related |
+| 2+ | Class should potentially be split into N classes |
+| 0 | No methods or no shared state |
+
+### Cohesion Analysis Output
+
+```bash
+/kc-docs analyze flask_backend
+```
+
+Now shows:
+
+```
+Cohesion Analysis:
+├── Classes analyzed: 45
+├── High cohesion (≥80%): 12 classes ✅
+├── Medium cohesion (50-79%): 18 classes
+├── Low cohesion (<50%): 15 classes ⚠️
+│
+├── LCOM4 Analysis:
+│   ├── Classes needing split: 8
+│   └── Potential class extractions: 14
+│
+└── Worst offenders:
+    ├── RoofAnalyzer: 33% cohesion, LCOM4=3 → consider splitting
+    ├── HorizonCalculator: 34% cohesion, LCOM4=2
+    └── FirestoreService: 28% cohesion, LCOM4=4
+```
+
+### Interpreting Results
+
+**Low cohesion + LCOM4 > 1**: Class is doing too many unrelated things → split it
+
+**Low cohesion + LCOM4 = 1**: Methods don't share state but are conceptually related → might be OK (utility class)
+
+**Multiple small classes with similar data**: Consider merging into one cohesive class
+
+### Using Cohesion to Prevent Bloat
+
+When AI agents suggest creating new classes:
+
+1. **Check existing cohesion**: Does the new functionality fit in an existing class?
+2. **LCOM4 impact**: Will adding this method decrease cohesion?
+3. **Domain alignment**: Does the class name match a domain concept?
+
+```python
+# Example: Don't create PlaneFitter, HorizonCalculator, MeshGenerator separately
+# Instead, merge into one cohesive RoofAnalyzer that shares elevation data
+
+class RoofAnalyzer:
+    def __init__(self, elevation_grid):
+        self.grid = elevation_grid  # Shared state
+
+    def fit_planes(self): ...      # Uses self.grid
+    def calc_horizons(self): ...   # Uses self.grid
+    def generate_mesh(self): ...   # Uses self.grid
+```
+
+### Disabling Cohesion Analysis
+
+If cohesion analysis is slow or not needed:
+
+```bash
+/kc-docs analyze flask_backend --no-cohesion
+```
+
 ### Reference: Lean Architecture
 
 See `~/.claude/snippets/lean-architecture-guard.md` for full guidelines.

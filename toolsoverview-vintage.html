@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code Tools - Vintage A3 Print</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Crimson Text', Georgia, serif; background: #fff; }
+        #canvas-container { display: flex; justify-content: center; padding: 5px; }
+        .controls {
+            background: #f5f5f0; padding: 8px 15px; display: flex; gap: 15px;
+            align-items: center; border-top: 1px solid #ccc;
+        }
+        button { padding: 6px 12px; border: 1px solid #888; background: #fff; cursor: pointer; }
+        @media print { .controls { display: none; } }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="controls">
+        <label>Seed: <input type="number" id="seedInput" value="42" style="width:60px"></label>
+        <label>Organic: <input type="range" id="organicSlider" min="0" max="100" value="35" style="width:80px"></label>
+        <button onclick="regenerate()">Regenerate</button>
+        <button onclick="saveArt()">Save PNG</button>
+    </div>
+
+    <script>
+// A3 Landscape dimensions at 96 DPI
+const W = 1587, H = 1123;
+
+// Full data from toolsoverview.md - all 14 domains
+const DOMAINS = [
+    { n: "1", name: "UI & Frontend", items: ["/ui:design", "/ui:colors", "/ui:responsive", "/ui:shadows", "/ui:shadcn", "/ui:charts", "[frontend-architect]", "[frontend-design]"] },
+    { n: "2", name: "Code Dev", items: ["/sc:implement", "/sc:design", "/sc:build", "/sc:improve", "/sc:cleanup", "/sc:refactor", "[python-expert]", "[backend-architect]", "[refactoring-expert]"] },
+    { n: "3", name: "Analysis", items: ["/sc:analyze", "/code-review", "/pr-review-toolkit", "[code-reviewer]", "[code-simplifier]", "[type-design-analyzer]", "[silent-failure-hunter]"] },
+    { n: "4", name: "Debug & Test", items: ["/sc:test", "/sc:troubleshoot", "/test-browser", "/tdd:test-first", "[parallel-debugger]", "[parallel-tester]", "[quality-engineer]", "[root-cause-analyst]"] },
+    { n: "5", name: "Docs", items: ["/sc:document", "/sc:index", "/kc:md2docx", "/nivametoden", "/kc-docs", "[technical-writer]", "[docx]", "[pdf]", "[canvas-design]"] },
+    { n: "6", name: "DevOps", items: ["/git:deploy-staging", "[devops-architect]", "[security-engineer]", "[performance-engineer]"] },
+    { n: "7", name: "Git", items: ["/sc:git", "/git:quick-commit", "/git:fix-github-issue", "/git:setup-worktree", "/commit:commit", "/commit:commit-push-pr", "/commit:clean_gone"] },
+    { n: "8", name: "Planning", items: ["/sc:brainstorm", "/sc:estimate", "/sc:workflow", "/sc:task", "/sc:spawn", "/kc:architecture", "[system-architect]", "[requirements-analyst]", "[Plan]", "[Explore]"] },
+    { n: "9", name: "Parallel", items: ["/sc:parallel", "/kc:parallel", "/kc:parallel-orchestrator", "/parallel", "[parallel-orchestrator]", "[parallel-debugger]"] },
+    { n: "10", name: "AI & Auto", items: ["/analyze-prompt", "/kc:analyze-prompt", "/kc:chatgpt-proxy", "/kc:ai-proxy", "/agent-sdk-dev:new-sdk-app", "[agent-sdk-verifier-py]"] },
+    { n: "11", name: "Session", items: ["/sc:load", "/sc:save", "/sc:overnight"] },
+    { n: "12", name: "Grants (NO)", items: ["/soknad:soknad", "/soknad:innovasjon", "/soknad:skattefunn", "/soknad:enova", "/soknad:budget", "/soknad:validate", "/soknad:firmaprofil"] },
+    { n: "13", name: "Plugin Dev", items: ["/plugin-dev:create-plugin", "/plugin-dev:agent-development", "/plugin-dev:hook-development", "/plugin-dev:mcp-integration", "[agent-creator]", "[plugin-validator]"] },
+    { n: "14", name: "Misc", items: ["/hookify:hookify", "/hookify:configure", "/screenshot", "/view-mermaid", "/kc:financial-analyst"] }
+];
+
+let seed = 42, organic = 0.35;
+
+function setup() {
+    createCanvas(W, H).parent('canvas-container');
+    noLoop();
+    regenerate();
+}
+
+function draw() {
+    randomSeed(seed);
+    background(255);
+
+    // Border
+    stroke(30); strokeWeight(2.5); noFill();
+    rect(18, 18, W-36, H-36);
+    stroke(140); strokeWeight(0.5);
+    rect(28, 28, W-56, H-56);
+
+    // Corner ornaments
+    drawCorners();
+
+    // Title
+    fill(15); noStroke();
+    textAlign(CENTER, TOP);
+    textFont('Playfair Display');
+    textSize(42); textStyle(BOLD);
+    text("Claude Code Tools Reference", W/2, 38);
+
+    textFont('Crimson Text');
+    textSize(16); textStyle(ITALIC);
+    fill(70);
+    text("Skills (/command) and Agents [name] organized by domain", W/2, 88);
+
+    // Decorative line
+    stroke(100); strokeWeight(1.5);
+    line(W/2-220, 115, W/2-40, 115);
+    line(W/2+40, 115, W/2+220, 115);
+    fill(80); noStroke();
+    push(); translate(W/2, 115); rotate(PI/4); rect(-5,-5,10,10); pop();
+
+    // Layout: 7 cols x 2 rows
+    const mx = 55, my = 140, mb = 50;
+    const cw = (W - mx*2) / 7;
+    const rh = (H - my - mb) / 2;
+
+    for (let i = 0; i < DOMAINS.length; i++) {
+        const col = i % 7, row = floor(i / 7);
+        const x = mx + col * cw + cw/2;
+        const y = my + row * rh;
+        drawDomain(x, y, cw - 15, rh - 20, DOMAINS[i]);
+    }
+
+    // Footer
+    fill(90); textAlign(LEFT, BOTTOM);
+    textSize(12); textStyle(ITALIC);
+    text("Legend:  /namespace:skill = Slash command    [agent] = Task agent", 50, H-30);
+    textAlign(RIGHT); textStyle(NORMAL);
+    fill(130);
+    text("A3 Landscape Print  •  Seed: " + seed, W-50, H-30);
+}
+
+function drawCorners() {
+    stroke(70); strokeWeight(1.2);
+    const pts = [[32,32,1,1], [W-32,32,-1,1], [32,H-32,1,-1], [W-32,H-32,-1,-1]];
+    for (let [cx,cy,sx,sy] of pts) {
+        line(cx, cy, cx+sx*25, cy);
+        line(cx, cy, cx, cy+sy*25);
+    }
+}
+
+function drawDomain(x, y, mw, mh, d) {
+    // Header
+    fill(20); noStroke();
+    textAlign(CENTER, TOP);
+    textFont('Playfair Display');
+    textSize(19); textStyle(BOLD);
+    text(d.n + ". " + d.name, x, y);
+
+    // Underline with slight wave
+    const hw = textWidth(d.n + ". " + d.name);
+    stroke(50); strokeWeight(2); noFill();
+    beginShape();
+    for (let px = x - hw/2 - 8; px <= x + hw/2 + 8; px += 4) {
+        vertex(px, y + 26 + sin((px + seed) * 0.08) * 2 * organic);
+    }
+    endShape();
+
+    // Trunk - use full available height
+    const ty = y + 35;
+    const th = mh - 55;
+    stroke(90); strokeWeight(1.8);
+    beginShape();
+    for (let yy = ty; yy <= ty + th; yy += 5) {
+        vertex(x + sin(yy * 0.06 + seed * 0.1) * 3 * organic, yy);
+    }
+    endShape();
+
+    // Items - LARGE TEXT for wall reading
+    textFont('Crimson Text');
+    textSize(14);
+    textStyle(NORMAL);
+
+    const startY = ty + 10;
+    // Calculate spacing to fit all items
+    const spacing = min(26, (th - 20) / max(1, d.items.length));
+
+    for (let i = 0; i < d.items.length; i++) {
+        const iy = startY + i * spacing;
+
+        const side = (i % 2 === 0) ? -1 : 1;
+        const blen = 55 + random(-8, 8) * organic;
+        const endX = x + side * blen;
+
+        // Branch
+        stroke(120); strokeWeight(1.2); noFill();
+        beginShape();
+        vertex(x, iy);
+        quadraticVertex(x + side * blen * 0.5, iy + random(-4, 4) * organic, endX, iy);
+        endShape();
+
+        // Leaf
+        fill(70); noStroke();
+        ellipse(endX, iy, 5, 5);
+
+        // Label
+        fill(25);
+        textAlign(side === -1 ? RIGHT : LEFT, CENTER);
+        let label = d.items[i];
+        if (label.length > 20) label = label.substring(0, 18) + "…";
+        text(label, endX + side * 8, iy);
+    }
+}
+
+function regenerate() {
+    seed = parseInt(document.getElementById('seedInput').value) || 42;
+    organic = document.getElementById('organicSlider').value / 100;
+    redraw();
+}
+
+function saveArt() { saveCanvas('claude-tools-' + seed, 'png'); }
+
+document.getElementById('seedInput').addEventListener('change', regenerate);
+document.getElementById('organicSlider').addEventListener('input', regenerate);
+    </script>
+</body>
+</html>

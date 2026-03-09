@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Claude Code Tools - Mind Map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Patrick+Hand&display=swap');
+        * { margin: 0; padding: 0; }
+        body { background: #fff; }
+        #canvas-container { display: flex; justify-content: center; padding: 5px; }
+        .controls { background: #f5f5f0; padding: 8px 15px; display: flex; gap: 15px; align-items: center; }
+        button { padding: 6px 12px; border: 1px solid #888; background: #fff; cursor: pointer; }
+        @media print { .controls { display: none; } }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="controls">
+        <label>Seed: <input type="number" id="seedInput" value="42" style="width:60px"></label>
+        <button onclick="seed=floor(random(1,99999));document.getElementById('seedInput').value=seed;redraw()">Random</button>
+        <button onclick="redraw()">Regenerate</button>
+        <button onclick="saveCanvas('claude-mindmap','png')">Save PNG</button>
+    </div>
+
+<script>
+const W = 1587, H = 1123;
+
+// EXACT categories from toolsoverview.md - split into LEFT and RIGHT groups
+// Shortened labels for readability at distance
+const LEFT_CATS = [
+    { name: "1. UI & Frontend", items: ["ui:design", "ui:colors", "ui:responsive", "ui:shadows", "ui:shadcn", "ui:charts", "[frontend-architect]"] },
+    { name: "2. Code Dev", items: ["sc:implement", "sc:design", "sc:build", "sc:improve", "sc:cleanup", "[python-expert]", "[backend-architect]"] },
+    { name: "3. Analysis", items: ["sc:analyze", "code-review", "pr-review-toolkit", "[code-reviewer]", "[type-analyzer]", "[failure-hunter]"] },
+    { name: "4. Debug & Test", items: ["sc:test", "sc:troubleshoot", "test-browser", "[parallel-debugger]", "[quality-engineer]"] },
+    { name: "5. Documentation", items: ["sc:document", "sc:index", "kc:md2docx", "nivametoden", "[technical-writer]"] },
+    { name: "6. DevOps", items: ["git:deploy", "[devops-architect]", "[security-engineer]", "[perf-engineer]"] },
+    { name: "7. Git", items: ["sc:git", "git:quick-commit", "git:fix-issue", "commit:commit", "commit:push-pr"] }
+];
+
+const RIGHT_CATS = [
+    { name: "8. Planning", items: ["sc:brainstorm", "sc:estimate", "sc:workflow", "sc:task", "kc:architecture", "[system-architect]", "[Plan]"] },
+    { name: "9. Parallel", items: ["sc:parallel", "kc:parallel", "kc:parallel-orch", "[parallel-orchestrator]", "[parallel-debugger]"] },
+    { name: "10. AI & Auto", items: ["analyze-prompt", "kc:chatgpt-proxy", "kc:ai-proxy", "[agent-sdk-verifier]"] },
+    { name: "11. Session", items: ["sc:load", "sc:save", "sc:overnight"] },
+    { name: "12. Grants (NO)", items: ["soknad:soknad", "soknad:innovasjon", "soknad:skattefunn", "soknad:enova", "soknad:budget"] },
+    { name: "13. Plugin Dev", items: ["plugin-dev:create", "plugin-dev:agent", "plugin-dev:hook", "[plugin-validator]"] },
+    { name: "14. Misc", items: ["hookify:hookify", "screenshot", "view-mermaid", "kc:financial"] }
+];
+
+let seed = 42;
+
+function setup() {
+    createCanvas(W, H).parent('canvas-container');
+    noLoop();
+    document.getElementById('seedInput').addEventListener('change', () => { seed = parseInt(document.getElementById('seedInput').value) || 42; redraw(); });
+}
+
+function draw() {
+    randomSeed(seed);
+    background(255);
+
+    const cx = W / 2;
+    const cy = H / 2;
+
+    // Title - LARGER for wall reading
+    fill(20);
+    noStroke();
+    textAlign(CENTER, TOP);
+    textFont('Patrick Hand');
+    textSize(48);
+    text("Claude Code Tools", cx, 15);
+    textSize(16);
+    fill(70);
+    text("Mind Map Reference  •  A3 Landscape", cx, 68);
+
+    // Central hub
+    drawHub(cx, cy);
+
+    // LEFT side categories (extend leftward) - final spacing adjustment
+    const leftStartY = 90;
+    const leftSpacing = (H - 155) / LEFT_CATS.length;
+    for (let i = 0; i < LEFT_CATS.length; i++) {
+        const y = leftStartY + i * leftSpacing + leftSpacing/2;
+        drawCategory(cx, cy, LEFT_CATS[i], cx - 175, y, -1);
+    }
+
+    // RIGHT side categories (extend rightward) - final spacing adjustment
+    const rightStartY = 90;
+    const rightSpacing = (H - 155) / RIGHT_CATS.length;
+    for (let i = 0; i < RIGHT_CATS.length; i++) {
+        const y = rightStartY + i * rightSpacing + rightSpacing/2;
+        drawCategory(cx, cy, RIGHT_CATS[i], cx + 175, y, 1);
+    }
+
+    // Footer - LARGER for readability
+    fill(80);
+    textSize(13);
+    textAlign(LEFT, BOTTOM);
+    text("skill:name = Slash Command    [name] = Agent", 40, H - 18);
+    textAlign(RIGHT);
+    text("Seed: " + seed, W - 40, H - 18);
+}
+
+function drawHub(cx, cy) {
+    // Organic center blob - LARGER for prominence
+    fill(248);
+    stroke(40);
+    strokeWeight(3.5);
+    beginShape();
+    for (let a = 0; a < TWO_PI; a += 0.06) {
+        const r = 65 + sin(a * 4 + seed * 0.1) * 10 + cos(a * 6) * 6;
+        vertex(cx + cos(a) * r, cy + sin(a) * r);
+    }
+    endShape(CLOSE);
+
+    fill(15);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textFont('Patrick Hand');
+    textSize(26);
+    text("CLAUDE", cx, cy - 14);
+    text("CODE", cx, cy + 14);
+}
+
+function drawCategory(cx, cy, cat, catX, catY, dir) {
+    // Main branch from center to category - thicker, more organic
+    stroke(50);
+    strokeWeight(3);
+    noFill();
+    drawCurve(cx, cy, catX, catY, 0.12 * dir);
+
+    // Category bubble - LARGER for wall reading
+    textFont('Patrick Hand');
+    textSize(18);
+    const tw = textWidth(cat.name) + 28;
+    const th = 34;
+
+    fill(245);
+    stroke(30);
+    strokeWeight(2.5);
+    drawBubble(catX, catY, tw, th);
+
+    fill(10);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(17);
+    text(cat.name, catX, catY);
+
+    // Items branch outward - compact to fit all 14 categories
+    const items = cat.items;
+    const n = items.length;
+    const itemStartX = catX + dir * 35;
+    const vertSpread = min(85, n * 15);  // Compact vertical spread
+    const startY = catY - vertSpread / 2;
+
+    textFont('Caveat');
+    textSize(14);  // Slightly smaller for fit
+
+    for (let i = 0; i < n; i++) {
+        const iy = startY + (i / max(1, n - 1)) * vertSpread;
+        // Stagger X positions in 2 levels for cleaner look
+        const level = i % 2;
+        const ix = itemStartX + dir * (55 + level * 50);
+
+        // Branch - organic curve
+        stroke(90);
+        strokeWeight(1.5);
+        drawCurve(catX + dir * tw/2, catY, ix, iy, 0.08 * dir);
+
+        // Dot - slightly larger
+        fill(50);
+        noStroke();
+        ellipse(ix, iy, 6, 6);
+
+        // Label - no truncation, full text
+        fill(15);
+        textAlign(dir > 0 ? LEFT : RIGHT, CENTER);
+        text(items[i], ix + dir * 10, iy);
+    }
+}
+
+function drawCurve(x1, y1, x2, y2, curve) {
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    const cx = mx + (y2 - y1) * curve;
+    const cy = my - (x2 - x1) * curve * 0.3;
+    beginShape();
+    vertex(x1, y1);
+    quadraticVertex(cx, cy, x2, y2);
+    endShape();
+}
+
+function drawBubble(x, y, w, h) {
+    beginShape();
+    const n = 24;
+    for (let i = 0; i <= n; i++) {
+        const a = (i / n) * TWO_PI;
+        const rx = w/2 + sin(a * 3 + seed) * 3;
+        const ry = h/2 + cos(a * 4 + seed) * 2;
+        vertex(x + cos(a) * rx, y + sin(a) * ry);
+    }
+    endShape(CLOSE);
+}
+</script>
+</body>
+</html>

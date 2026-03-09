@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code Command Constellation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        #canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        .controls {
+            background: #16213e;
+            padding: 10px 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            border-top: 1px solid #0f3460;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .control-group label {
+            color: #e94560;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .control-group input[type="range"] {
+            width: 100px;
+            accent-color: #e94560;
+        }
+        .control-group input[type="number"] {
+            width: 80px;
+            padding: 4px 8px;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #e94560;
+            color: white;
+        }
+        .btn-primary:hover { background: #ff6b6b; }
+        .btn-secondary {
+            background: #0f3460;
+            color: #e94560;
+        }
+        .btn-secondary:hover { background: #16213e; }
+        .seed-display {
+            color: #4ecdc4;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        @media print {
+            .controls { display: none; }
+            body { background: white; }
+            #canvas-container { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="controls">
+        <div class="control-group">
+            <label>Seed:</label>
+            <input type="number" id="seedInput" value="42">
+            <button class="btn-secondary" onclick="randomizeSeed()">Random</button>
+        </div>
+        <div class="control-group">
+            <label>Branch Curve:</label>
+            <input type="range" id="curveSlider" min="0" max="100" value="50">
+        </div>
+        <div class="control-group">
+            <label>Spacing:</label>
+            <input type="range" id="spacingSlider" min="50" max="150" value="100">
+        </div>
+        <div class="control-group">
+            <span class="seed-display" id="seedDisplay">Seed: 42</span>
+        </div>
+        <button class="btn-primary" onclick="regenerate()">Regenerate</button>
+        <button class="btn-secondary" onclick="saveArt()">Save PNG</button>
+    </div>
+
+    <script>
+// ============================================
+// CLAUDE CODE COMMAND CONSTELLATION
+// A radial mind-map of all tools and commands
+// ============================================
+
+// Tool data organized by domain
+const DOMAINS = [
+    {
+        name: "UI & Frontend",
+        color: "#FF6B6B",
+        skills: ["/ui:design", "/ui:colors", "/ui:responsive", "/ui:shadows", "/ui:shadcn", "/ui:charts"],
+        agents: ["frontend-architect", "frontend-design"]
+    },
+    {
+        name: "Code Development",
+        color: "#4ECDC4",
+        skills: ["/sc:implement", "/sc:design", "/sc:build", "/sc:improve", "/sc:cleanup"],
+        agents: ["python-expert", "backend-architect", "refactoring-expert"]
+    },
+    {
+        name: "Analysis & Review",
+        color: "#9B59B6",
+        skills: ["/sc:analyze", "/code-review", "/pr-review-toolkit:review-pr"],
+        agents: ["code-reviewer", "code-simplifier", "type-design-analyzer", "silent-failure-hunter"]
+    },
+    {
+        name: "Debug & Test",
+        color: "#2ECC71",
+        skills: ["/sc:test", "/sc:troubleshoot", "/test-browser", "/tdd:test-first"],
+        agents: ["parallel-debugger", "parallel-tester", "quality-engineer", "root-cause-analyst"]
+    },
+    {
+        name: "Documentation",
+        color: "#F39C12",
+        skills: ["/sc:document", "/sc:index", "/kc:md2docx", "/nivametoden", "/kc-docs"],
+        agents: ["technical-writer", "docx", "pdf", "canvas-design"]
+    },
+    {
+        name: "DevOps",
+        color: "#3498DB",
+        skills: ["/git:deploy-staging"],
+        agents: ["devops-architect", "security-engineer", "performance-engineer"]
+    },
+    {
+        name: "Git & Version",
+        color: "#E74C3C",
+        skills: ["/sc:git", "/git:quick-commit", "/git:fix-github-issue", "/commit:commit", "/commit:commit-push-pr"],
+        agents: []
+    },
+    {
+        name: "Planning",
+        color: "#1ABC9C",
+        skills: ["/sc:brainstorm", "/sc:estimate", "/sc:workflow", "/sc:task", "/sc:spawn", "/kc:architecture"],
+        agents: ["system-architect", "requirements-analyst", "Plan", "Explore"]
+    },
+    {
+        name: "Parallel Exec",
+        color: "#E91E63",
+        skills: ["/sc:parallel", "/kc:parallel", "/kc:parallel-orchestrator"],
+        agents: ["parallel-orchestrator", "parallel-debugger"]
+    },
+    {
+        name: "AI & Automation",
+        color: "#00BCD4",
+        skills: ["/analyze-prompt", "/kc:chatgpt-proxy", "/kc:gemini-proxy", "/kc:ai-proxy"],
+        agents: ["agent-sdk-verifier-py", "agent-sdk-verifier-ts"]
+    },
+    {
+        name: "Session Mgmt",
+        color: "#FFC107",
+        skills: ["/sc:load", "/sc:save", "/sc:overnight"],
+        agents: []
+    },
+    {
+        name: "Norwegian Grants",
+        color: "#5C6BC0",
+        skills: ["/soknad:soknad", "/soknad:innovasjon", "/soknad:skattefunn", "/soknad:enova", "/soknad:budget"],
+        agents: []
+    },
+    {
+        name: "Plugin Dev",
+        color: "#8BC34A",
+        skills: ["/plugin-dev:create-plugin", "/plugin-dev:agent-development", "/plugin-dev:hook-development"],
+        agents: ["agent-creator", "plugin-validator", "skill-reviewer"]
+    },
+    {
+        name: "Misc & Hooks",
+        color: "#78909C",
+        skills: ["/hookify:hookify", "/hookify:configure", "/screenshot", "/view-mermaid"],
+        agents: ["learning-guide", "socratic-mentor"]
+    }
+];
+
+// Canvas dimensions for A3 landscape at ~96 DPI
+const A3_WIDTH = 1587;
+const A3_HEIGHT = 1123;
+
+let currentSeed = 42;
+let curveAmount = 0.5;
+let spacingFactor = 1.0;
+
+function setup() {
+    let canvas = createCanvas(A3_WIDTH, A3_HEIGHT);
+    canvas.parent('canvas-container');
+    textFont('Segoe UI, system-ui, sans-serif');
+    noLoop();
+    regenerate();
+}
+
+function draw() {
+    randomSeed(currentSeed);
+
+    // Dark background with subtle gradient
+    background(26, 26, 46);
+    drawBackgroundGlow();
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const domainRadius = min(width, height) * 0.32 * spacingFactor;
+    const commandRadius = min(width, height) * 0.44 * spacingFactor;
+
+    // Draw center hub
+    drawCenterHub(centerX, centerY);
+
+    // Draw domains and their commands
+    const angleStep = TWO_PI / DOMAINS.length;
+
+    for (let i = 0; i < DOMAINS.length; i++) {
+        const domain = DOMAINS[i];
+        const angle = -HALF_PI + i * angleStep; // Start from top
+
+        // Domain position
+        const dx = centerX + cos(angle) * domainRadius;
+        const dy = centerY + sin(angle) * domainRadius;
+
+        // Draw branch from center to domain
+        drawBranch(centerX, centerY, dx, dy, domain.color, 3);
+
+        // Draw domain node
+        drawDomainNode(dx, dy, domain.name, domain.color);
+
+        // Draw commands for this domain - stagger radially to avoid overlap
+        const allCommands = [...domain.skills, ...domain.agents.map(a => `[${a}]`)];
+        const cmdAngleSpread = angleStep * 0.85;
+        const cmdStartAngle = angle - cmdAngleSpread / 2;
+
+        for (let j = 0; j < allCommands.length; j++) {
+            const cmdAngle = cmdStartAngle + (j / max(1, allCommands.length - 1)) * cmdAngleSpread;
+            // Stagger radius in 3 levels to prevent overlap
+            const radiusOffset = (j % 3) * 30;
+            const cx = centerX + cos(cmdAngle) * (commandRadius + radiusOffset);
+            const cy = centerY + sin(cmdAngle) * (commandRadius + radiusOffset);
+
+            // Draw branch from domain to command
+            drawBranch(dx, dy, cx, cy, domain.color, 1.5, 0.4);
+
+            // Draw command label
+            drawCommandLabel(cx, cy, allCommands[j], domain.color, cmdAngle);
+        }
+    }
+
+    // Draw title
+    drawTitle();
+}
+
+function drawBackgroundGlow() {
+    noStroke();
+    for (let r = 400; r > 0; r -= 20) {
+        fill(233, 69, 96, map(r, 0, 400, 15, 0));
+        ellipse(width/2, height/2, r * 2);
+    }
+}
+
+function drawCenterHub(x, y) {
+    // Outer glow
+    noStroke();
+    for (let r = 80; r > 0; r -= 5) {
+        fill(233, 69, 96, map(r, 0, 80, 60, 0));
+        ellipse(x, y, r * 2);
+    }
+
+    // Main circle
+    fill(26, 26, 46);
+    stroke(233, 69, 96);
+    strokeWeight(3);
+    ellipse(x, y, 100);
+
+    // Text
+    noStroke();
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(14);
+    textStyle(BOLD);
+    text("CLAUDE", x, y - 8);
+    text("CODE", x, y + 8);
+}
+
+function drawBranch(x1, y1, x2, y2, col, weight, alpha = 0.7) {
+    stroke(red(color(col)), green(color(col)), blue(color(col)), alpha * 255);
+    strokeWeight(weight);
+    noFill();
+
+    // Curved bezier branch
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2;
+    const perpX = -(y2 - y1) * curveAmount * 0.2;
+    const perpY = (x2 - x1) * curveAmount * 0.2;
+
+    beginShape();
+    vertex(x1, y1);
+    quadraticVertex(midX + perpX, midY + perpY, x2, y2);
+    endShape();
+}
+
+function drawDomainNode(x, y, name, col) {
+    const c = color(col);
+
+    // Glow
+    noStroke();
+    for (let r = 50; r > 0; r -= 5) {
+        fill(red(c), green(c), blue(c), map(r, 0, 50, 40, 0));
+        ellipse(x, y, r * 2);
+    }
+
+    // Node background
+    fill(26, 26, 46, 230);
+    stroke(col);
+    strokeWeight(2);
+    rectMode(CENTER);
+    rect(x, y, textWidth(name) + 20, 28, 14);
+
+    // Text
+    noStroke();
+    fill(col);
+    textAlign(CENTER, CENTER);
+    textSize(14);
+    textStyle(BOLD);
+    text(name, x, y);
+}
+
+function drawCommandLabel(x, y, label, col, angle) {
+    const c = color(col);
+
+    // Small dot
+    noStroke();
+    fill(red(c), green(c), blue(c), 180);
+    ellipse(x, y, 6);
+
+    // Text with rotation based on position
+    push();
+    translate(x, y);
+
+    // Determine text alignment based on angle
+    let textAngle = 0;
+    let xOffset = 8;
+    textAlign(LEFT, CENTER);
+
+    if (angle > HALF_PI - 0.3 && angle < HALF_PI + 0.3) {
+        // Bottom - horizontal
+        textAngle = 0;
+        textAlign(CENTER, TOP);
+        xOffset = 0;
+    } else if (angle < -HALF_PI + 0.3 && angle > -HALF_PI - 0.3) {
+        // Top - horizontal
+        textAngle = 0;
+        textAlign(CENTER, BOTTOM);
+        xOffset = 0;
+    } else if (cos(angle) < 0) {
+        // Left side - flip text
+        textAlign(RIGHT, CENTER);
+        xOffset = -8;
+    }
+
+    rotate(textAngle);
+
+    fill(255, 240);
+    textSize(10);
+    textStyle(NORMAL);
+
+    // Shorten label if needed
+    let displayLabel = label;
+    if (label.startsWith('/')) {
+        // Skill - show full path but compact
+        displayLabel = label;
+    } else if (label.startsWith('[')) {
+        // Agent - italicize
+        textStyle(ITALIC);
+    }
+
+    text(displayLabel, xOffset, textAngle === 0 && textAlign === CENTER ? 8 : 0);
+    pop();
+}
+
+function drawTitle() {
+    // Title bar at top
+    fill(26, 26, 46, 200);
+    noStroke();
+    rect(0, 0, width, 50);
+
+    fill(233, 69, 96);
+    textAlign(LEFT, CENTER);
+    textSize(20);
+    textStyle(BOLD);
+    text("Claude Code Command Constellation", 30, 25);
+
+    fill(150);
+    textSize(11);
+    textStyle(NORMAL);
+    textAlign(RIGHT, CENTER);
+    text(`14 Domains | Skills & Agents | Seed: ${currentSeed}`, width - 30, 25);
+
+    // Legend hint
+    fill(100);
+    textSize(9);
+    text("/skill = Slash Command    [agent] = Task Agent", width - 30, 42);
+}
+
+// Control functions
+function regenerate() {
+    currentSeed = parseInt(document.getElementById('seedInput').value) || 42;
+    curveAmount = document.getElementById('curveSlider').value / 100;
+    spacingFactor = document.getElementById('spacingSlider').value / 100;
+    document.getElementById('seedDisplay').textContent = `Seed: ${currentSeed}`;
+    redraw();
+}
+
+function randomizeSeed() {
+    currentSeed = floor(random(1, 99999));
+    document.getElementById('seedInput').value = currentSeed;
+    regenerate();
+}
+
+function saveArt() {
+    saveCanvas('claude-code-constellation-' + currentSeed, 'png');
+}
+
+// Event listeners
+document.getElementById('seedInput').addEventListener('change', regenerate);
+document.getElementById('curveSlider').addEventListener('input', regenerate);
+document.getElementById('spacingSlider').addEventListener('input', regenerate);
+    </script>
+</body>
+</html>

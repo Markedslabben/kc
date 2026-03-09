@@ -23,6 +23,26 @@ import subprocess
 from pathlib import Path
 
 
+def ensure_preferred_theme(mermaid_code: str) -> str:
+    """
+    Ensure the Mermaid code has a theme configuration.
+
+    Injects Klaus' preferred theme config if no theme is specified.
+    Keeps existing theme config if present.
+    """
+    # Klaus preferred theme configuration
+    SOLID_THEME = "%%{init: {'theme': 'base', 'themeVariables': {'background': '#ffffff', 'primaryColor': '#e3f2fd', 'primaryTextColor': '#0d1b2a', 'primaryBorderColor': '#1e88e5', 'secondaryColor': '#e8f5e9', 'secondaryTextColor': '#1b5e20', 'tertiaryColor': '#fff8e1', 'tertiaryTextColor': '#e65100', 'lineColor': '#37474f', 'textColor': '#0d1b2a', 'fontFamily': 'Arial, Helvetica, sans-serif', 'fontSize': '16px'}}}%%"
+
+    lines = mermaid_code.strip().split('\n')
+
+    # Check if first line has %%{init - keep existing theme config
+    if lines and lines[0].strip().startswith('%%{init'):
+        return '\n'.join(lines)
+    else:
+        # Inject preferred theme at the beginning
+        return SOLID_THEME + '\n\n' + mermaid_code
+
+
 def encode_for_mermaid_live(mermaid_code: str) -> tuple[str, str]:
     """
     Encode Mermaid code for use in Mermaid Live URL.
@@ -33,10 +53,13 @@ def encode_for_mermaid_live(mermaid_code: str) -> tuple[str, str]:
 
     Returns (encoded_data, format_prefix)
     """
+    # Apply preferred theme if not already specified
+    mermaid_code = ensure_preferred_theme(mermaid_code)
+
     # Create the state object that Mermaid Live expects
     state = {
         "code": mermaid_code,
-        "mermaid": {"theme": "default"},
+        "mermaid": {"theme": "base"},
         "autoSync": True,
         "updateDiagram": True,
         "updateEditor": True

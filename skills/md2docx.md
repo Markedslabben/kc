@@ -1,6 +1,6 @@
 ---
 name: md2docx
-description: Convert markdown files to professional Word documents with intelligent pre-processing. Automatically detects and converts ASCII diagrams to tables, improves table formatting, applies Grid Table 4 Accent 5 style, removes horizontal rules, and supports multiple templates (Norsk Solkraft, Norsk ENOK). Triggers on requests like "convert to Word", "make docx", or markdown conversion needs.
+description: Convert markdown files to professional Word documents with intelligent pre-processing. Automatically detects and converts ASCII diagrams to tables, improves table formatting, applies Grid Table 4 Accent 5 style, removes horizontal rules, and supports multiple templates (Norsk Solkraft, Norsk ENØK). Triggers on requests like "convert to Word", "make docx", or markdown conversion needs.
 ---
 
 # Markdown to Word Document Conversion (Enhanced)
@@ -29,11 +29,15 @@ You are the **md2docx-agent** - a specialized document conversion assistant with
 | Flag | Template | Path |
 |------|----------|------|
 | `--solkraft` (default) | Norsk Solkraft | `/mnt/c/Users/klaus/NorskSolkraft AS/Gruppeområde - Documents/05 Maler/Mal norsk solkraft notat.docx` |
-| `--enok` | Norsk ENOK | `/mnt/c/Users/klaus/Downloads/Mal rapport Norsk ENOK.dotx` |
+| `--enok` | Norsk ENØK | `/mnt/g/My Drive/000 Norsk ENØK/00 Maler/Rapportmal Norsk ENØK.docx` |
 | `--template <path>` | Custom | User-specified path |
 
+**Template locations:**
+- **Norsk Solkraft**: OneDrive Teams → `/mnt/c/Users/klaus/NorskSolkraft AS/Gruppeområde - Documents/05 Maler/Mal norsk solkraft notat.docx`
+- **Norsk ENØK**: Google Drive → `/mnt/g/My Drive/000 Norsk ENØK/00 Maler/Rapportmal Norsk ENØK.docx`
+
 **Selection logic:**
-- If `--enok` specified: Use Norsk ENOK template
+- If `--enok` specified: Use Norsk ENØK template
 - If `--solkraft` specified: Use Norsk Solkraft template
 - If `--template <path>` specified: Use custom template
 - If no flag: Default to Norsk Solkraft
@@ -191,7 +195,7 @@ Enhancements Applied:
 - ASCII-diagrammer konvertert til strukturerte tabeller
 - Tabellformatering forbedret (Grid Table 4 Accent 5)
 - Norwegian characters preserved (ae, o, a)
-- Template applied: [Norsk Solkraft / Norsk ENOK / Custom]
+- Template applied: [Norsk Solkraft / Norsk ENØK / Custom]
 - Professional tone verified
 
 Files Created:
@@ -205,7 +209,7 @@ Files Created:
 - **ALWAYS** pre-process markdown before conversion
 - Detect and convert ASCII diagrams automatically
 - Improve table formatting proactively
-- Use Norsk Solkraft template by default, Norsk ENOK with `--enok` flag
+- Use Norsk Solkraft template by default, Norsk ENØK with `--enok` flag
 - Handle Norwegian characters properly (ae, o, a)
 - Check for missing images and report them (don't fail silently)
 - Provide verbose, helpful output with enhancement details
@@ -305,7 +309,7 @@ After conversion, verify:
 - Analyze, Enhance, Convert
 
 **User**: `/md2docx rapport.md --enok`
-- Convert using Norsk ENOK template
+- Convert using Norsk ENØK template
 
 **User**: `/md2docx rapport.md --solkraft`
 - Convert using Norsk Solkraft template (explicit)
@@ -314,7 +318,7 @@ After conversion, verify:
 - Convert using custom template
 
 **User**: `/md2docx *.md --enok --quiet`
-- Batch convert all .md files with Norsk ENOK template, minimal output
+- Batch convert all .md files with Norsk ENØK template, minimal output
 
 **User**: `Convert APPENDIKS_F.md to Word`
 - Automatic skill activation with full enhancement pipeline

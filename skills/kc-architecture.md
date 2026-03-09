@@ -1,6 +1,8 @@
 ---
-name: kc-architecture
-description: Develop a refined specification for a new feature using iterative architect-reviewer workflow. Creates tight, lean specs by running 3 iterations of architect → reviewer refinement. (user)
+name: architecture
+description: "Develop a refined specification using iterative architect-reviewer workflow with DHH and ParkOptimizer reviewers"
+category: workflow
+complexity: complex
 ---
 
 # Develop a Lean Architecture Spec

@@ -157,4 +157,173 @@ The `s` suffix gives you ONE specific screenshot at that position, instead of a 
 
 ---
 
-*Last updated: 2026-01-03*
+---
+
+## Q: Why don't my inline onclick handlers work? (CSP blocking)
+
+**A:** Content Security Policy (CSP) with `'strict-dynamic'` blocks inline event handlers like `onclick="doSomething()"`.
+
+### The Error
+```
+Executing inline event handler violates the following Content Security Policy directive
+'script-src 'self' 'nonce-xxx' 'strict-dynamic' https:'
+```
+
+### Why It Happens
+- `'strict-dynamic'` trusts scripts with nonces
+- But inline handlers (`onclick`, `onchange`, `onsubmit`) are **NEVER** allowed by nonces
+- Nonces only work for `<script>` tags, not attributes
+
+### The Fix
+Replace inline handlers with `addEventListener`:
+
+**Before (broken with CSP):**
+```html
+<button onclick="showScreen('form')">Skjema</button>
+```
+
+**After (CSP-compliant):**
+```html
+<button data-screen="form">Skjema</button>
+
+<script nonce="xxx">
+document.querySelectorAll('[data-screen]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        showScreen(this.getAttribute('data-screen'));
+    });
+});
+</script>
+```
+
+### Debugging CSP Issues
+1. Open browser DevTools → Console tab
+2. Look for "Content Security Policy" errors
+3. Check if it's blocking:
+   - **Inline handlers** → Use addEventListener instead
+   - **External scripts** → Add nonce or add domain to CSP
+   - **Inline scripts** → Add nonce to `<script>` tag
+
+### CSP Quick Reference
+| CSP Directive | What It Allows |
+|---------------|----------------|
+| `'nonce-xxx'` | Script tags with matching nonce |
+| `'strict-dynamic'` | Scripts loaded by nonced scripts |
+| `'unsafe-inline'` | All inline scripts (NOT recommended) |
+| `'unsafe-hashes'` | Inline handlers with matching hashes |
+
+**Pro tip**: Use Chrome DevTools MCP (`mcp__chrome-devtools__list_console_messages`) to check for CSP violations!
+
+---
+
+## Q: How do I inject nonces into external scripts for CSP?
+
+**A:** Create a dev server that injects nonces dynamically.
+
+### Example: Python Dev Server with Nonce Injection
+```python
+# In your HTTP request handler
+import secrets
+import re
+
+nonce = secrets.token_urlsafe(16)
+
+# Inject nonce into external script tags
+html_content = re.sub(
+    r'<script src="(https://cdn\.example\.com/[^"]+)">',
+    f'<script nonce="{nonce}" src="\\1">',
+    html_content
+)
+
+# Inject nonce into inline scripts
+html_content = re.sub(
+    r'<script>',
+    f'<script nonce="{nonce}">',
+    html_content
+)
+
+# Send CSP header with same nonce
+csp = f"script-src 'self' 'nonce-{nonce}' 'strict-dynamic' https:"
+self.send_header('Content-Security-Policy', csp)
+```
+
+### Common CDNs to Nonce
+- `cdnjs.cloudflare.com` (Three.js, etc.)
+- `cdn.jsdelivr.net` (npm packages)
+- `api.mapbox.com` (Mapbox GL JS)
+- `maps.googleapis.com` (Google Maps)
+
+### Reference
+See `dev-server-with-nonce.py` in Solkraft project for a complete implementation.
+
+---
+
+## Q: Where can I find smart algorithms for common programming problems?
+
+**A:** **LeetCode** (https://leetcode.com) is an excellent source for well-documented, battle-tested algorithms.
+
+### Why LeetCode?
+- **Optimized solutions**: Problems have multiple approaches with time/space complexity analysis
+- **Real-world applicable**: Many algorithms solve practical problems (image processing, data structures, geometry)
+- **Community-vetted**: Solutions are reviewed by millions of developers
+- **Discussion sections**: Multiple implementation approaches with explanations
+
+### Useful Algorithm Categories
+
+| Category | Example Problems | Use Cases |
+|----------|------------------|-----------|
+| **Matrix/Grid** | #85 Maximal Rectangle, #200 Number of Islands | Image analysis, region detection |
+| **Geometry** | #587 Erect the Fence (convex hull), #963 Minimum Area Rectangle | Polygon operations, spatial analysis |
+| **Intervals** | #56 Merge Intervals, #57 Insert Interval | Scheduling, range operations |
+| **Graph** | #743 Network Delay Time, #207 Course Schedule | Dependency analysis, pathfinding |
+| **Dynamic Programming** | #322 Coin Change, #1143 Longest Common Subsequence | Optimization problems |
+
+### Example: Using LeetCode #85 in Production
+
+The "Maximal Rectangle" algorithm is used in the Solkraft panel placement module:
+
+```python
+# flask_backend/services/pv_design/panel_placement.py
+# Uses LeetCode #85 histogram-based approach to find largest viable area
+
+def _find_largest_rectangle(self, mask: np.ndarray):
+    """
+    Find largest rectangle of True values in binary mask.
+    Uses maximal rectangle in histogram algorithm (O(rows × cols)).
+    Reference: LeetCode #85
+    """
+    # Build histogram + stack-based largest rectangle
+    ...
+```
+
+### How to Search LeetCode
+
+1. **By topic**: https://leetcode.com/problemset/?topicSlugs=array,matrix
+2. **By difficulty**: Filter Easy/Medium/Hard
+3. **By company**: See which companies ask specific problems
+4. **Discussion tab**: Often has better explanations than the official solution
+
+### Pro Tips
+- Search for "optimal solution" in discussion for best approaches
+- Look for solutions in your preferred language (Python, TypeScript, etc.)
+- Check time complexity before implementing
+- Many problems have video explanations linked in discussions
+
+---
+
+---
+
+## Q: How do I exit fullscreen mode in Windows Terminal?
+
+**A:** Press **F11** to toggle fullscreen mode on/off.
+
+| Action | Shortcut |
+|--------|----------|
+| Toggle fullscreen | `F11` |
+
+**Symptoms**: Terminal fills entire screen, no tabs visible at top, no window controls.
+
+**Note**: This works in most Windows applications, not just Windows Terminal.
+
+---
+
+*Last updated: 2026-01-21*
